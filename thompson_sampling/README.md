@@ -8,17 +8,14 @@ If the data doesn't fit this demand curve, it's to explore other models.
 
 After you've installed the module, you can call the `dynamic_pricing.thompson_sample` class from the module. After that, please follow the tutorial as follow.
 
-
 ```python
 import pandas as pd
 import numpy as np
 ```
 
-
 # 0. Dataset
 
 The format of dataset should have at least two columns: **price** and **demand**. This shows the aggregated demand, can be in any granularity level, that we got at the price we set. Here, I have two separated dataset: `df_curr` one to set initial, another one `df_obs` is to update the prior.
-
 
 ```python
 df_curr = pd.read_csv('dataset/thomp-samp__sales-transaction__data-current.csv')
@@ -26,7 +23,6 @@ df_curr = pd.read_csv('dataset/thomp-samp__sales-transaction__data-current.csv')
 display(df_curr.head())
 print('length of the dataframe:', len(df_curr))
 ```
-
 
 <table border="1" class="dataframe">
   <thead>
@@ -66,10 +62,7 @@ print('length of the dataframe:', len(df_curr))
 </table>
 </div>
 
-
     length of the dataframe: 1041
-
-
 
 ```python
 df_obs = pd.read_csv('dataset/thomp-samp__sales-transaction__data-observed.csv')
@@ -115,9 +108,7 @@ print('length of the dataframe:', len(df_obs))
 </table>
 </div>
 
-
     length of the dataframe: 1042
-
 
 # 1. Initialize
 
@@ -125,11 +116,9 @@ Start by setting priors for the model parameters (e.g., demand curve parameters)
 
 You can start by calling the `PriorIntitialization` class from the thompson sampling module.
 
-
 ```python
 import dynamic_pricing.thompson_sample as ts
 ```
-
 
 ```python
 data = df_curr                              # dataframe that contains the data
@@ -144,83 +133,35 @@ price_prior = ts.PriorIntitialization(data, price_col, qty_col, fixed_cost, var_
 
 After that, we call the `intialize_prior method()` to fit and update the prior distribution with our data. Then, you can call the `investigate_prior_parameters()` method to check the result of the trace object from the updated posterior. It will result with the updated $a$, $\eta$, and $sd$ parameters.
 
-
 ```python
 price_prior.initialize_prior()
 price_prior.investigate_prior_parameters()
 ```
-
-<style>
-    /* Turns off some styling */
-    progress {
-        /* gets rid of default border in Firefox and Opera. */
-        border: none;
-        /* Needs to be in here for Safari polyfill so background images work as expected. */
-        background-size: auto;
-    }
-    progress:not([value]), progress:not([value])::-webkit-progress-bar {
-        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
-    }
-    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
-        background: #F44336;
-    }
-</style>
-
-
-
-
-
-<div>
-  <progress value='8000' class='' max='8000' style='width:300px; height:20px; vertical-align: middle;'></progress>
-  100.00% [8000/8000 00:01&lt;00:00 Sampling 4 chains, 2 divergences]
-</div>
-
-
-
-    Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 2 seconds.
-    There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
-
-
-
     
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_9_4.png)
+![png](images/notebook_thompsonsampling_practice_9_4.png)
     
-
-
     updated a value from the result: 5.37
     updated price elasticity (eta) value from the result: -0.74
     updated standard deviation from the result: 54.34
 
-
 The next step is to fit and store all the parameters needed to plot and calculate demand and profit curve using `params_for_curve()` method. Only after that, you will be able to show the demand and profit curve using the `plot_curve`. Pass **"profit"** or **"demand"** to the `curve_type` parameter to show which one you want to see.
-
 
 ```python
 price_prior.params_for_curve()
 ```
 
-
 ```python
 price_prior.plot_curve(max_curve=25, curve_type='profit')
 ```
-
-
+ 
+![png](images/notebook_thompsonsampling_practice_12_0.png)
     
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_12_0.png)
-    
-
-
-
 ```python
 price_prior.plot_curve(max_curve=25, curve_type='demand')
 ```
 
-
+![png](images/notebook_thompsonsampling_practice_13_0.png)
     
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_13_0.png)
-    
-
-
 Once fitted and updated, `PriorInitialization` is equipped with the properties to see and store the all the update prior values for:
 
 - $a$, $\eta$, and $sd$ parameters
@@ -231,7 +172,6 @@ Once fitted and updated, `PriorInitialization` is equipped with the properties t
 - Price-profit at every price point we set
 
 This should be stored as we will pass all of these values during the Sampling Loop and Updating Prior (Posterior).
-
 
 ```python
 a_prior = price_prior.a_prior_value[:3]
@@ -247,8 +187,6 @@ print('three samples of prior for sd values:', sd_prior)
     three samples of prior for price elasticity values: [-0.6282366  -0.7439304  -0.76092265]
     three samples of prior for sd values: [54.23618308 54.16537469 53.31829189]
 
-
-
 ```python
 demand_mean_prior = price_prior.demand_mean_value
 profit_mean_prior = price_prior.profit_mean_value
@@ -259,8 +197,6 @@ print('last 5 points of the most probable profit at every price point we set:', 
 
     last 5 points of the most probable demand at every price point we set: [0.60950924 0.60507188 0.60070998 0.59642154 0.59220462]
     last 5 points of the most probable profit at every price point we set: [9.18062514 9.22991313 9.27866345 9.32688821 9.37459915]
-
-
 
 ```python
 df_params_prior = price_prior.df_parameters_value
@@ -293,19 +229,6 @@ print(truncate_dict_string(price_profit_prior, 120))
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -400,100 +323,41 @@ price_update = ts.IncrementalUpdatePrior(prior_params, fixed_cost, var_cost, dat
 price_update.update_prior()
 ```
 
-    Auto-assigning NUTS sampler...
-    Initializing NUTS using jitter+adapt_diag...
-    Multiprocess sampling (4 chains in 4 jobs)
-    NUTS: [a, eta, sd]
-
-
-
-
-<style>
-    /* Turns off some styling */
-    progress {
-        /* gets rid of default border in Firefox and Opera. */
-        border: none;
-        /* Needs to be in here for Safari polyfill so background images work as expected. */
-        background-size: auto;
-    }
-    progress:not([value]), progress:not([value])::-webkit-progress-bar {
-        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
-    }
-    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
-        background: #F44336;
-    }
-</style>
-
-
-
-
-
-<div>
-  <progress value='40000' class='' max='40000' style='width:300px; height:20px; vertical-align: middle;'></progress>
-  100.00% [40000/40000 00:09&lt;00:00 Sampling 4 chains, 30 divergences]
-</div>
-
-
-
-    Sampling 4 chains for 5_000 tune and 5_000 draw iterations (20_000 + 20_000 draws total) took 10 seconds.
-    There were 30 divergences after tuning. Increase `target_accept` or reparameterize.
-
-
 Similar to `PriorInitialization` object, we can also call `investigate_posterior_parameters()` to check the updated parameters value.
-
 
 ```python
 price_update.investigate_posterior_parameters()
 ```
 
-
-    
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_24_0.png)
-    
-
+![png](images/notebook_thompsonsampling_practice_24_0.png)
 
     posterior of a value from the result: 7.07
     posterior of price elasticity (eta) value from the result: -0.59
     posterior standard deviation from the result: 56.44
 
-
 The object also has `params_for_curve()` method which you have to call to be able to plot the price-profit and price-demand plot. Again, after that, you can call the `plot_prior_posterior()` to plot the profit and demand.
-
 
 ```python
 price_update.params_for_curve()
 ```
 
-
 ```python
 price_update.plot_prior_posterior(max_curve=25, curve_type='profit')
 ```
 
-
+![png](images/notebook_thompsonsampling_practice_27_0.png)
     
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_27_0.png)
-    
-
-
-
 ```python
 price_update.plot_prior_posterior(max_curve=25, curve_type='demand')
 ```
 
-
+![png](images/notebook_thompsonsampling_practice_28_0.png)
     
-![png](notebook_thompsonsampling_practice_files/notebook_thompsonsampling_practice_28_0.png)
-    
-
-
-
-
 # 3. Thompson Sampling
 
 The last step is to do the Thompson Sampling. This is very crucial step to determine whether we will go with exploring a rather unknown reward (profit) from a new price point, or we will go by exploiting a price that we know generates the highest reward. The Thompson Sampling methods leverages the sampling from Bayesian Inference to be able to balance between exploration and exploitation.
 
 You can call the `ThompsonSampling` class from the module and pass the variables as follows:
-
 
 ```python
 # in thompson sampling, we used the updated posterior as the prior for the next step
@@ -522,30 +386,13 @@ thompson_sampling.sampling()
     sampled values: a = 9.819448290872094 , eta = -0.3205907468514327 , sd = 55.85790743056576
 
 
-Finally, you can call `calculate_rewards()` method on the object to calculate the demand and profit that might be generated from each price point. Take the one with the highest reward (profit) for the next price we should set for our product. After that, we can just repeat the cycle over and over again: Thompson Sampling -> Update Prior to Become Posterior.
-
+Finally, you can call `calculate_rewards()` method on the object to calculate the demand and profit that might be generated from each price point. Take the one with the highest reward (profit) for the next price we should set for our product.
 
 ```python
 thompson_sampling.calculate_rewards()
 ```
 
-
-
-
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -608,4 +455,4 @@ thompson_sampling.calculate_rewards()
 </table>
 </div>
 
-
+This completes the Thompson Sampling process for dynamic pricing. You can repeat the cycle to continue updating the pricing model.
